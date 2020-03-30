@@ -5,27 +5,25 @@ const getVideosPlaylistPage = () => {
     try {
         const contents = playlist.querySelector('#contents');
         const videos = contents.querySelectorAll('span.ytd-thumbnail-overlay-time-status-renderer');
+        return videos.length ? videos : null;
     } catch(err) {
         console.warn(err);
         return null;
     }
-    
-    return videos.length ? videos : null;
 }
 
 const getVideosRegularPage = () => {
-    const playlist = document.getElementById('playlist')
+    const playlist = document.getElementById('playlist');
     if (!playlist) return;
 
     try {
         const items = playlist.querySelector('#items');
-        const videos = items.querySelectorAll('.ytd-thumbnail-overlay-time-status-renderer');
+        const videos = items.querySelectorAll('span.ytd-thumbnail-overlay-time-status-renderer');
+        return videos.length ? videos : null;
     } catch(err) {
         console.warn(err);
         return null;
     }
-
-    return videos.length ? videos : null;
 }
 
 const getPlaylistLength = videos => {
@@ -73,7 +71,7 @@ const getPlaylistLength = videos => {
     return getPrettyOutput(getPreparedDuration(totalSeconds));
 }
 
-const isPlaylistPage = () => window.location.pathname.slice(1) === 'playlist';
+const isPlaylistPage = window.location.pathname.slice(1) === 'playlist';
 
 const data = isPlaylistPage ? getVideosPlaylistPage() : getVideosRegularPage();
 if (data) {
