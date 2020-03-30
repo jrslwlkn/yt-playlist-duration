@@ -71,6 +71,8 @@ const getPlaylistLength = videos => {
     return getPrettyOutput(getPreparedDuration(totalSeconds));
 }
 
+console.log('starting the extension');
+
 const isPlaylistPage = window.location.pathname.slice(1) === 'playlist';
 
 const data = isPlaylistPage ? getVideosPlaylistPage() : getVideosRegularPage();
