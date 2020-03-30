@@ -1,10 +1,15 @@
 const getVideosPlaylistPage = () => {
-    const playlist = document.querySelector('ytd-playlist-video-list-renderer.ytd-item-section-renderer')
+    const playlist = document.querySelector('ytd-playlist-video-list-renderer.ytd-item-section-renderer');
     if (!playlist) return;
 
-    const contents = playlist.querySelector('#contents')
-    const videos = contents.querySelectorAll('span.ytd-thumbnail-overlay-time-status-renderer')
-
+    try {
+        const contents = playlist.querySelector('#contents');
+        const videos = contents.querySelectorAll('span.ytd-thumbnail-overlay-time-status-renderer');
+    } catch(err) {
+        console.warn(err);
+        return null;
+    }
+    
     return videos.length ? videos : null;
 }
 
@@ -12,13 +17,20 @@ const getVideosRegularPage = () => {
     const playlist = document.getElementById('playlist')
     if (!playlist) return;
 
-    const items = playlist.querySelector('#items')
-    const videos = items.querySelectorAll('.ytd-thumbnail-overlay-time-status-renderer')
+    try {
+        const items = playlist.querySelector('#items');
+        const videos = items.querySelectorAll('.ytd-thumbnail-overlay-time-status-renderer');
+    } catch(err) {
+        console.warn(err);
+        return null;
+    }
 
     return videos.length ? videos : null;
 }
 
 const getPlaylistLength = videos => {
+    if (!videos) return;
+
     const durations = []; 
     videos.forEach(v => durations.push(v.innerText))
 
@@ -35,7 +47,7 @@ const getPlaylistLength = videos => {
         return duration[0];
     }
 
-    const totalSecs = durations.reduce((acc, cur) => acc + convertTimestringToSeconds(cur), 0)
+    const totalSeconds = durations.reduce((acc, cur) => acc + convertTimestringToSeconds(cur), 0)
 
     const getPreparedDuration = duration => {
         const hours = parseInt(duration/3600)
@@ -56,7 +68,7 @@ const getPlaylistLength = videos => {
 
     }
 
-    return getPrettyOutput(getPreparedDuration(totalSecs));
+    return getPrettyOutput(getPreparedDuration(totalSeconds));
 }
 
 const isPlaylistPage = () => window.location.pathname.slice(1) === 'playlist';
