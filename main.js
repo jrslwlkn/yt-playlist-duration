@@ -6,21 +6,21 @@ const getVideosPlaylistPage = () => {
         const contents = playlist.querySelector('#contents');
         const videos = contents.querySelectorAll('span.ytd-thumbnail-overlay-time-status-renderer');
         return videos.length ? videos : null;
-    } catch(err) {
+    } catch (err) {
         console.warn(err);
         return null;
     }
 }
 
 const getVideosRegularPage = () => {
-    const playlist = document.getElementById('playlist');
+    const playlist = document.querySelector('#playlist');
     if (!playlist) return;
 
     try {
         const items = playlist.querySelector('#items');
         const videos = items.querySelectorAll('span.ytd-thumbnail-overlay-time-status-renderer');
         return videos.length ? videos : null;
-    } catch(err) {
+    } catch (err) {
         console.warn(err);
         return null;
     }
@@ -29,7 +29,7 @@ const getVideosRegularPage = () => {
 const getPlaylistLength = videos => {
     if (!videos) return;
 
-    const durations = []; 
+    const durations = [];
     videos.forEach(v => durations.push(v.innerText));
 
     const convertTimestringToSeconds = duration => {
@@ -50,9 +50,9 @@ const getPlaylistLength = videos => {
     const totalSeconds = durations.reduce((acc, cur) => acc + convertTimestringToSeconds(cur), 0);
 
     const getPreparedDuration = duration => {
-        const hours = parseInt(duration/3600);
-        const minutes = parseInt((duration - hours*3600)/60);
-        const seconds = duration - hours*3600 - minutes*60;
+        const hours = parseInt(duration / 3600);
+        const minutes = parseInt((duration - hours * 3600) / 60);
+        const seconds = duration - hours * 3600 - minutes * 60;
 
         return [seconds, minutes, hours].filter(x => x);
     }
@@ -71,11 +71,16 @@ const getPlaylistLength = videos => {
     return getPrettyOutput(getPreparedDuration(totalSeconds));
 }
 
-console.log('starting the extension');
+window.addEventListener("load", () => {
+    const interval = setInterval(checker, 100);
 
-const isPlaylistPage = window.location.pathname.slice(1) === 'playlist';
-
-const data = isPlaylistPage ? getVideosPlaylistPage() : getVideosRegularPage();
-if (data) {
-    console.log(getPlaylistLength(data));
-}
+    function checker() {
+        const isPlaylistPage = window.location.pathname.slice(1) === 'playlist';
+        const data = isPlaylistPage ? getVideosPlaylistPage() : getVideosRegularPage();
+        
+        if (data) {
+            console.log(getPlaylistLength(data));
+            clearInterval(interval);
+        }
+    }
+}, false);
