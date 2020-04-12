@@ -2,10 +2,23 @@ const getVideosPlaylistPage = () => {
     const playlist = document.querySelector('ytd-playlist-video-list-renderer.ytd-item-section-renderer');
     if (!playlist) return;
 
+    const getVideoCount = () => {
+        try {
+            const stats = document
+                .querySelector('h1#title')
+                .nextElementSibling
+                .nextElementSibling;
+            const count = stats.querySelector('yt-formatted-string').textContent.split(' ')[0];
+            return parseInt(count);
+        } catch (err) {
+            return;
+        }
+    }
+
     try {
         const contents = playlist.querySelector('#contents');
         const videos = contents.querySelectorAll('span.ytd-thumbnail-overlay-time-status-renderer');
-        return videos.length ? videos : null;
+        return videos.length === getVideoCount() ? videos : null;
     } catch (err) {
         console.warn(err);
         return null;
@@ -16,10 +29,22 @@ const getVideosRegularPage = () => {
     const playlist = document.querySelector('#playlist');
     if (!playlist) return;
 
+    const getVideoCount = () => {
+        try {
+            const spans = document
+                .querySelector('yt-formatted-string.index-message.style-scope.ytd-playlist-panel-renderer')
+                .getElementsByTagName('span');
+            const last = spans[spans.length - 1];
+            return parseInt(last.textContent);
+        } catch (err) {
+            return;
+        }
+    }
+
     try {
         const items = playlist.querySelector('#items');
         const videos = items.querySelectorAll('span.ytd-thumbnail-overlay-time-status-renderer');
-        return videos.length ? videos : null;
+        return videos.length === getVideoCount() ? videos : null;
     } catch (err) {
         console.warn(err);
         return null;
@@ -77,7 +102,7 @@ window.addEventListener("load", () => {
     function checker() {
         const isPlaylistPage = window.location.pathname.slice(1) === 'playlist';
         const data = isPlaylistPage ? getVideosPlaylistPage() : getVideosRegularPage();
-        
+
         if (data) {
             console.log(getPlaylistLength(data));
             clearInterval(interval);
