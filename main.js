@@ -96,6 +96,18 @@ const getPlaylistLength = videos => {
     return getPrettyOutput(getPreparedDuration(totalSeconds));
 }
 
+const injectDurationNearTitle = (isPlaylistPage, value) => {
+    const duration = document.createElement('small');
+    duration.textContent = value;
+    duration.style.color = 'gray';
+
+    const titleBox = isPlaylistPage
+        ? document.querySelector('h1#title')
+        : document.querySelector('yt-formatted-string.title');
+
+    titleBox.after(duration);
+}
+
 window.addEventListener("load", () => {
     const interval = setInterval(checker, 100);
 
@@ -104,7 +116,7 @@ window.addEventListener("load", () => {
         const data = isPlaylistPage ? getVideosPlaylistPage() : getVideosRegularPage();
 
         if (data) {
-            console.log(getPlaylistLength(data));
+            injectDurationNearTitle(isPlaylistPage, getPlaylistLength(data));
             clearInterval(interval);
         }
     }
