@@ -20,8 +20,7 @@ const getVideosPlaylistPage = () => {
         const videos = contents.querySelectorAll('span.ytd-thumbnail-overlay-time-status-renderer');
         return videos.length === getVideoCount() ? videos : null;
     } catch (err) {
-        console.warn(err);
-        return null;
+        return;
     }
 }
 
@@ -46,13 +45,13 @@ const getVideosRegularPage = () => {
         const videos = items.querySelectorAll('span.ytd-thumbnail-overlay-time-status-renderer');
         return videos.length === getVideoCount() ? videos : null;
     } catch (err) {
-        console.warn(err);
-        return null;
+        return;
     }
 }
 
 const getPlaylistLength = videos => {
     if (!videos) return;
+    debugger
 
     const durations = [];
     videos.forEach(v => durations.push(v.innerText));
@@ -90,7 +89,6 @@ const getPlaylistLength = videos => {
             .filter(x => x)
             .reverse()
             .join(' ');
-
     }
 
     return getPrettyOutput(getPreparedDuration(totalSeconds));
@@ -98,6 +96,7 @@ const getPlaylistLength = videos => {
 
 const injectDurationNearTitle = (isPlaylistPage, value) => {
     const duration = document.createElement('small');
+    duration.setAttribute('id', 'yt-playlist-duration');
     duration.textContent = value;
     duration.style.color = 'gray';
 
@@ -108,16 +107,56 @@ const injectDurationNearTitle = (isPlaylistPage, value) => {
     titleBox.after(duration);
 }
 
-window.addEventListener("load", () => {
-    const interval = setInterval(checker, 100);
+const removeOldLabel = () => {
+    const oldDuration = document.querySelector('#yt-playlist-duration');
+    if (oldDuration) {
+        oldDuration.parentNode.removeChild(oldDuration);
+        return true;
+    }
+}
+
+const runner = () => {
+    let n = 0;
+    let interval;
+    if (removeOldLabel()) {
+        setTimeout(() => {
+            interval = setInterval(checker, 100);
+        }, 1000)
+    } else {
+        interval = setInterval(checker, 100);
+    }
+
+
 
     function checker() {
-        const isPlaylistPage = window.location.pathname.slice(1) === 'playlist';
-        const data = isPlaylistPage ? getVideosPlaylistPage() : getVideosRegularPage();
+        const { location: { pathname } } = window;
 
-        if (data) {
+        const isPlaylistPage = pathname.slice(1) === 'playlist';
+        const data = isPlaylistPage ? getVideosPlaylistPage() : getVideosRegularPage();
+        n += 1;
+
+        if (data || n >= 30) {
             injectDurationNearTitle(isPlaylistPage, getPlaylistLength(data));
             clearInterval(interval);
         }
     }
-}, false);
+}
+
+const getPlaylistId = search => {
+    let playlist = search.split('list=')[1] || '';
+    const pos = playlist.indexOf('&');
+    if (pos > -1) {
+        playlist = playlist.substring(0, pos);
+    }
+    return playlist;
+}
+
+let oldPlaylist = '';
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    const playlist = getPlaylistId(window.location.search);
+    if (message.updated && oldPlaylist !== playlist) {
+        oldPlaylist = playlist;
+        runner();
+    }
+});
