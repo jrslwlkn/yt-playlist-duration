@@ -51,7 +51,6 @@ const getVideosRegularPage = () => {
 
 const getPlaylistLength = videos => {
     if (!videos) return;
-    debugger
 
     const durations = [];
     videos.forEach(v => durations.push(v.innerText));
