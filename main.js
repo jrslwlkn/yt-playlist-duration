@@ -124,8 +124,6 @@ const runner = () => {
         interval = setInterval(checker, 100);
     }
 
-
-
     function checker() {
         const { location: { pathname } } = window;
 
@@ -133,8 +131,12 @@ const runner = () => {
         const data = isPlaylistPage ? getVideosPlaylistPage() : getVideosRegularPage();
         n += 1;
 
-        if (data || n >= 30) {
+        if (data) {
             injectDurationNearTitle(isPlaylistPage, getPlaylistLength(data));
+            clearInterval(interval);
+        }
+
+        if (n >= 30) {
             clearInterval(interval);
         }
     }
