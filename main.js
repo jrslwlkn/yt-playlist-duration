@@ -77,17 +77,16 @@ const getPlaylistLength = videos => {
         const minutes = parseInt((duration - hours * 3600) / 60);
         const seconds = duration - hours * 3600 - minutes * 60;
 
-        return [seconds, minutes, hours].filter(x => x);
-    }
+        return { hours, minutes, seconds };
+    } 
 
     const getPrettyOutput = duration => {
-        const labels = ['second', 'minute', 'hour'];
-
-        return duration
-            .map((t, i) => t ? t > 1 ? `${t} ${labels[i]}s` : `${t} ${labels[i]}` : null)
-            .filter(x => x)
-            .reverse()
-            .join(' ');
+        return Object.keys(duration).reduce((str, key) => {
+            if (duration[key]) {
+                str = `${str}${duration[key]} ${duration[key] === 1 ? key.substring(0, key.length-2) : key} `;
+            }
+            return str;
+        }, '');
     }
 
     return getPrettyOutput(getPreparedDuration(totalSeconds));
