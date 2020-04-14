@@ -1,15 +1,21 @@
+const getInvalidVideoCount = contents => {
+    let n = 0;
+    const imgs = contents.querySelectorAll('img#img');
+    for (let i = 0; i < imgs.length; i++) {
+        if (!imgs[i].currentSrc || imgs[i].currentSrc.split('/')[4] === 'img')
+            n += 1;
+    }
+    return n;
+}
+
 const getVideosPlaylistPage = () => {
     const playlist = document.querySelector('ytd-playlist-video-list-renderer.ytd-item-section-renderer');
     if (!playlist) return;
 
     const getVideoCount = () => {
         try {
-            const stats = document
-                .querySelector('h1#title')
-                .nextElementSibling
-                .nextElementSibling;
-            const count = stats.querySelector('yt-formatted-string').textContent.split(' ')[0];
-            return parseInt(count);
+            const stats = document.querySelectorAll('yt-formatted-string.ytd-playlist-sidebar-primary-info-renderer');
+            return parseInt(stats[1].textContent);
         } catch (err) {
             return;
         }
@@ -18,7 +24,7 @@ const getVideosPlaylistPage = () => {
     try {
         const contents = playlist.querySelector('#contents');
         const videos = contents.querySelectorAll('span.ytd-thumbnail-overlay-time-status-renderer');
-        return videos.length === getVideoCount() ? videos : null;
+        return videos.length && videos.length + getInvalidVideoCount(contents) === getVideoCount() ? videos : null;
     } catch (err) {
         return;
     }
@@ -43,7 +49,7 @@ const getVideosRegularPage = () => {
     try {
         const items = playlist.querySelector('#items');
         const videos = items.querySelectorAll('span.ytd-thumbnail-overlay-time-status-renderer');
-        return videos.length === getVideoCount() ? videos : null;
+        return videos.length && videos.length + getInvalidVideoCount(items) === getVideoCount() ? videos : null;
     } catch (err) {
         return;
     }
@@ -133,7 +139,7 @@ const runner = () => {
         const data = isPlaylistPage ? getVideosPlaylistPage() : getVideosRegularPage();
         n += 1;
 
-        if (data || n >= 50) {
+        if (data || n >= 100) {
             injectDurationNearTitle(isPlaylistPage, getPlaylistLength(data));
             clearInterval(interval);
         }
