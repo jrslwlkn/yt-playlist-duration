@@ -1,8 +1,12 @@
+const state = {};
+
+function isPlaylistPage() { return window.location.pathname.slice(1) === 'playlist' };
+
 const getInvalidVideoCount = contents => {
     let n = 0;
     const imgs = contents.querySelectorAll('img#img');
     for (let i = 0; i < imgs.length; i++) {
-        if (!imgs[i].currentSrc || imgs[i].currentSrc.split('/')[4] === 'img')
+        if (imgs[i].src.split('/')[4] === 'img')
             n += 1;
     }
     return n;
@@ -24,7 +28,9 @@ const getVideosPlaylistPage = () => {
     try {
         const contents = playlist.querySelector('#contents');
         const videos = contents.querySelectorAll('span.ytd-thumbnail-overlay-time-status-renderer');
-        return videos.length && videos.length + getInvalidVideoCount(contents) === getVideoCount() ? videos : null;
+        const vc = videos.length;
+        const c = getVideoCount();
+        return vc && (vc === c || vc + getInvalidVideoCount(contents) === c) ? videos : null;
     } catch (err) {
         return;
     }
@@ -49,7 +55,9 @@ const getVideosRegularPage = () => {
     try {
         const items = playlist.querySelector('#items');
         const videos = items.querySelectorAll('span.ytd-thumbnail-overlay-time-status-renderer');
-        return videos.length && videos.length + getInvalidVideoCount(items) === getVideoCount() ? videos : null;
+        const vc = videos.length;
+        const c = getVideoCount();
+        return vc && (vc === c || vc + getInvalidVideoCount(items) === c) ? videos : null;
     } catch (err) {
         return;
     }
@@ -100,7 +108,7 @@ const getPlaylistLength = videos => {
 
 const injectDurationNearTitle = (isPlaylistPage, value) => {
     if (!value) return;
-    
+
     const duration = document.createElement('small');
     duration.setAttribute('id', 'yt-playlist-duration');
     duration.textContent = value;
@@ -133,14 +141,11 @@ const runner = () => {
     }
 
     function checker() {
-        const { location: { pathname } } = window;
-
-        const isPlaylistPage = pathname.slice(1) === 'playlist';
-        const data = isPlaylistPage ? getVideosPlaylistPage() : getVideosRegularPage();
+        const data = isPlaylistPage() ? getVideosPlaylistPage() : getVideosRegularPage();
         n += 1;
 
         if (data || n >= 100) {
-            injectDurationNearTitle(isPlaylistPage, getPlaylistLength(data));
+            injectDurationNearTitle(state.isPlaylistPage, getPlaylistLength(data));
             clearInterval(interval);
         }
     }
@@ -155,12 +160,11 @@ const getPlaylistId = search => {
     return playlist;
 }
 
-let oldPlaylist = '';
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const playlist = getPlaylistId(window.location.search);
-    if (message.updated && oldPlaylist !== playlist) {
-        oldPlaylist = playlist;
+    if (message.updated && (state.playlist !== playlist || state.isPlaylistPage !== isPlaylistPage())) {
+        state.playlist = playlist;
+        state.isPlaylistPage = isPlaylistPage();
         runner();
     }
 });
