@@ -78,12 +78,12 @@ const getPlaylistLength = videos => {
         const seconds = duration - hours * 3600 - minutes * 60;
 
         return { hours, minutes, seconds };
-    } 
+    }
 
     const getPrettyOutput = duration => {
         return Object.keys(duration).reduce((str, key) => {
             if (duration[key]) {
-                str = `${str}${duration[key]} ${duration[key] === 1 ? key.substring(0, key.length-2) : key} `;
+                str = `${str}${duration[key]} ${duration[key] === 1 ? key.substring(0, key.length - 2) : key} `;
             }
             return str;
         }, '');
@@ -93,6 +93,8 @@ const getPlaylistLength = videos => {
 }
 
 const injectDurationNearTitle = (isPlaylistPage, value) => {
+    if (!value) return;
+    
     const duration = document.createElement('small');
     duration.setAttribute('id', 'yt-playlist-duration');
     duration.textContent = value;
@@ -131,12 +133,8 @@ const runner = () => {
         const data = isPlaylistPage ? getVideosPlaylistPage() : getVideosRegularPage();
         n += 1;
 
-        if (data) {
+        if (data || n >= 50) {
             injectDurationNearTitle(isPlaylistPage, getPlaylistLength(data));
-            clearInterval(interval);
-        }
-
-        if (n >= 30) {
             clearInterval(interval);
         }
     }
